@@ -155,6 +155,9 @@ class LocationFindingModel(nn.Module):
         signal = (self.alpha / (self.m + sq_dist)).sum(-1, keepdim=True) # [..., 1]
         return self.b + signal
 
+    def transform_design(self, xi: Tensor) -> Tensor:
+        return xi
+
     def outcome_likelihood(self, theta: Tensor, xi: Tensor) -> dist.Distribution:
         """Return p(y | theta, xi) = Normal(log mu(theta, xi), sigma^2).
 

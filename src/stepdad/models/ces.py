@@ -264,6 +264,10 @@ class CESModel(nn.Module):
         """
         return dist.transform_to(_DESIGN_CONSTRAINT)(xi)
 
+    def transform_design(self, xi: Tensor) -> Tensor:
+        """Map raw policy output to the constrained space used in stored history."""
+        return self._transform_xi(xi)
+
     # ------------------------------------------------------------------
     # Likelihood
     # ------------------------------------------------------------------

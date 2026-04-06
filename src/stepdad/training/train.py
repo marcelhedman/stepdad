@@ -220,14 +220,15 @@ def run_stepdad(
     while t < T:
         # --- collect one step with current policy ---
         with torch.no_grad():
-            xi = run_model.design_net(designs, outcomes)  # [1, d]
+            xi = run_model.design_net(designs, outcomes)   # [1, d] raw
+            xi_stored = run_model.transform_design(xi)     # constrained for CES, identity otherwise
             yi = model.outcome_likelihood(
                 theta_true, xi
-            ).sample()                                    # [1, obs_dim]
+            ).sample()                                     # [1, obs_dim]
             if yi.dim() == 1:
                 yi = yi.unsqueeze(-1)
 
-        designs = torch.cat([designs, xi.unsqueeze(1)], dim=1)
+        designs = torch.cat([designs, xi_stored.unsqueeze(1)], dim=1)
         outcomes = torch.cat([outcomes, yi.unsqueeze(1)], dim=1)
         t += 1
 
@@ -456,11 +457,13 @@ class _PosteriorModel(nn.Module):
         outcomes_full = po.clone()
 
         for _ in range(self._remaining_T):
-            xi = self._model.design_net(designs_full, outcomes_full)
-            yi = self._model.outcome_likelihood(theta, xi).rsample()
+            xi = self._model.design_net(designs_full, outcomes_full)          # raw
+            xi_stored = self._model.transform_design(xi)                       # constrained for CES
+            lk = self._model.outcome_likelihood(theta, xi)
+            yi = lk.rsample() if lk.has_rsample else lk.sample()              # rsample for rparam, sample for reinforce
             if yi.dim() == 1:
                 yi = yi.unsqueeze(-1)
-            designs_full = torch.cat([designs_full, xi.unsqueeze(1)], dim=1)
+            designs_full = torch.cat([designs_full, xi_stored.unsqueeze(1)], dim=1)
             outcomes_full = torch.cat([outcomes_full, yi.unsqueeze(1)], dim=1)
 
         # Return only the newly simulated steps

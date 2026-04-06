@@ -148,6 +148,9 @@ class TemporalDiscountingModel(nn.Module):
     # Likelihood
     # ------------------------------------------------------------------
 
+    def transform_design(self, xi: Tensor) -> Tensor:
+        return xi
+
     def outcome_likelihood(self, theta: Tensor, xi: Tensor) -> dist.Distribution:
         """Return p(y | theta, xi) = Bernoulli(psi).
 
