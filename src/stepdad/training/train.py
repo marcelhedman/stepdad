@@ -285,8 +285,8 @@ def run_stepdad(
             seg_len = seg_end - t
             _log(logger, t, f"  Evaluating EIG(τ={t}→{seg_end}) over {n_eval_batches} batches ...")
 
-            resample_n = min(n_posterior_samples, eval_batch_size)
-            eval_post = resample(theta_samples, log_weights, resample_n)
+
+            eval_post = resample(theta_samples, log_weights, n_posterior_samples)
 
             # Fine-tuned eval: isolated copy of run_model (has fine-tuned design_net)
             eval_ft_model = _PosteriorModel(

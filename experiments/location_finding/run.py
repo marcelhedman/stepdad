@@ -108,8 +108,8 @@ def main():
         print("Random baseline: evaluating EIG ...")
         with torch.no_grad():
             theta_eval, d_eval, o_eval = model(args.batch_size)
-            eig_lb = estimate_eig(model, theta_eval, d_eval, o_eval, L=args.L, lower_bound=True)
-            eig_ub = estimate_eig(model, theta_eval, d_eval, o_eval, L=args.L, lower_bound=False)
+            eig_lb = estimate_eig(model, theta_eval, d_eval, o_eval, L=args.final_L, lower_bound=True)
+            eig_ub = estimate_eig(model, theta_eval, d_eval, o_eval, L=args.final_L, lower_bound=False)
         print(f"Random EIG  lb={eig_lb:.4f}  ub={eig_ub:.4f}")
         if logger:
             logger.log({"eig_lower": eig_lb, "eig_upper": eig_ub}, step=0)
