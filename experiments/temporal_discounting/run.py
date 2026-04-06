@@ -17,6 +17,7 @@ Example commands
 """
 
 import argparse
+import numpy as np
 import torch
 
 from stepdad.models.temporal_discounting import TemporalDiscountingPrior, TemporalDiscountingModel
@@ -36,15 +37,16 @@ def parse_args():
     p.add_argument("--batch_size", type=int, default=1024)
     p.add_argument("--lr", type=float, default=5e-5)
     p.add_argument("--L", type=int, default=1023)
-    p.add_argument("--final_L", type=int, default=None)
+    p.add_argument("--final_L", type=int, default=100000)
     # Step-DAD
     p.add_argument("--tau", type=int, nargs="+", default=[6], help="Fine-tuning step(s) τ")
     p.add_argument("--n_finetune_steps", type=int, default=1000)
     p.add_argument("--n_posterior_samples", type=int, default=20_000)
     p.add_argument("--finetune_lr", type=float, default=5e-5)
     p.add_argument("--n_eval_batches", type=int, default=10)
-    p.add_argument("--eval_L", type=int, default=1023)
+    # p.add_argument("--eval_L", type=int, default=1023)
     p.add_argument("--eval_batch_size", type=int, default=512)
+    p.add_argument("--n_thetas", type=int, default=16, help="Number of true thetas for Step-DAD evaluation")
     # Misc
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--device", type=str, default="cpu")
@@ -112,27 +114,40 @@ def main():
         )
 
         if args.mode == "stepdad":
-            print(f"\nRunning Step-DAD with τ={args.tau} ...")
-            theta_true = prior.sample(1).to(device)
-            print(f"True (log_k, alpha): {theta_true.squeeze().tolist()}")
+            print(f"\nRunning Step-DAD with τ={args.tau}, {args.n_finetune_steps} fine-tune steps, {args.n_thetas} true thetas ...")
+            all_metrics = []
+            for i in range(args.n_thetas):
+                theta_true = prior.sample(1).to(device)
+                print(f"\n--- theta {i+1}/{args.n_thetas}: (log_k, alpha) = {theta_true.squeeze().tolist()} ---")
+                _, _, metrics = run_stepdad(
+                    model=model,
+                    theta_true=theta_true,
+                    refinement_schedule=args.tau,
+                    gradient_estimator="reinforce",
+                    T=args.T,
+                    n_finetune_steps=args.n_finetune_steps,
+                    n_posterior_samples=args.n_posterior_samples,
+                    finetune_lr=args.finetune_lr,
+                    finetune_L=args.L,
+                    n_eval_batches=args.n_eval_batches,
+                    eval_L=args.final_L,
+                    eval_batch_size=args.eval_batch_size,
+                    logger=logger,
+                )
+                all_metrics.append(metrics)
 
-            designs, outcomes, eval_metrics = run_stepdad(
-                model=model,
-                theta_true=theta_true,
-                refinement_schedule=args.tau,
-                gradient_estimator="reinforce",
-                T=args.T,
-                n_finetune_steps=args.n_finetune_steps,
-                n_posterior_samples=args.n_posterior_samples,
-                finetune_lr=args.finetune_lr,
-                n_eval_batches=args.n_eval_batches,
-                eval_L=args.eval_L,
-                eval_batch_size=args.eval_batch_size,
-                logger=logger,
-            )
-            print(f"\nExperiment complete. Designs shape: {designs.shape}")
-            print(f"Total EIG StepDAD lb={eval_metrics['total_eig_stepdad_lb']:.4f}  ub={eval_metrics['total_eig_stepdad_ub']:.4f}")
-            print(f"Total EIG DAD     lb={eval_metrics['total_eig_dad_lb']:.4f}  ub={eval_metrics['total_eig_dad_ub']:.4f}")
+            keys = ["total_eig_stepdad_lb", "total_eig_stepdad_ub", "total_eig_dad_lb", "total_eig_dad_ub"]
+            means = {k: float(np.mean([m[k] for m in all_metrics])) for k in keys}
+            stes  = {k: float(np.std([m[k] for m in all_metrics]) / np.sqrt(args.n_thetas)) for k in keys}
+
+            print(f"\n=== Step-DAD results (mean ± SE over {args.n_thetas} thetas) ===")
+            print(f"Total EIG StepDAD  lb={means['total_eig_stepdad_lb']:.4f} ± {stes['total_eig_stepdad_lb']:.4f}"
+                  f"  ub={means['total_eig_stepdad_ub']:.4f} ± {stes['total_eig_stepdad_ub']:.4f}")
+            print(f"Total EIG DAD      lb={means['total_eig_dad_lb']:.4f} ± {stes['total_eig_dad_lb']:.4f}"
+                  f"  ub={means['total_eig_dad_ub']:.4f} ± {stes['total_eig_dad_ub']:.4f}")
+            if logger:
+                logger.log({**{f"mean_{k}": v for k, v in means.items()},
+                            **{f"ste_{k}": v for k, v in stes.items()}}, step=args.T)
 
     logger.finish()
 
