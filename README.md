@@ -29,12 +29,29 @@ substantially less computation than traditional adaptive BED.
 ## Installation
 
 ```bash
-git clone https://github.com/marcel9100/stepdad
+git clone https://github.com/marcelhedman/stepdad
 cd stepdad
-pip install -e .
 ```
 
-**Requirements**: Python ≥ 3.10, PyTorch ≥ 2.0.
+Create and activate a new environment with [mamba](https://mamba.readthedocs.io) (or conda):
+
+```bash
+mamba create -n stepdad python=3.11 pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+mamba activate stepdad
+```
+
+For CPU-only:
+
+```bash
+mamba create -n stepdad python=3.11 pytorch cpuonly -c pytorch
+mamba activate stepdad
+```
+
+Then install the package:
+
+```bash
+pip install -e .
+```
 
 ---
 
