@@ -90,16 +90,19 @@ def train_dad(
         loss.backward()
         optimiser.step()
 
+        # Log loss at every step
+        if logger:
+            logger.log({"loss": loss.item()}, step=step)
+
         if step % log_every == 0 or step == n_steps:
             with torch.no_grad():
                 eig_lb = estimate_eig(model, theta, designs, outcomes, L=1023, lower_bound=True)
                 eig_ub = estimate_eig(model, theta, designs, outcomes, L=1023, lower_bound=False)
-            metrics = {"eig_lower": eig_lb, "eig_upper": eig_ub, "loss": loss.item()}
+            eig_metrics = {"eig_lower": eig_lb, "eig_upper": eig_ub}
             if logger:
-                logger.log(metrics, step=step)
-            else:
-                parts = [f"step={step}"] + [f"{k}={v:.4f}" for k, v in metrics.items()]
-                print("  ".join(parts))
+                logger.log(eig_metrics, step=step)
+            parts = [f"step={step}", f"loss={loss.item():.4f}"] + [f"{k}={v:.4f}" for k, v in eig_metrics.items()]
+            print("  ".join(parts))
 
         # Separate high-quality final evaluation with larger L on a fresh batch
         if step == n_steps and final_L is not None and final_L != L:
@@ -120,11 +123,8 @@ def train_dad(
             final_metrics = {"final_eig_lower": final_lb, "final_eig_upper": final_ub}
             if logger:
                 logger.log(final_metrics, step=step)
-            else:
-                parts = [f"step={step} [final L={final_L}]"] + [
-                    f"{k}={v:.4f}" for k, v in final_metrics.items()
-                ]
-                print("  ".join(parts))
+            parts = [f"step={step} [final L={final_L}]"] + [f"{k}={v:.4f}" for k, v in final_metrics.items()]
+            print("  ".join(parts))
 
 
 # ---------------------------------------------------------------------------
