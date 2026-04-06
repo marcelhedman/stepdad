@@ -59,7 +59,10 @@ class WandbLogger(Logger):
 
     def log(self, metrics: dict, step: int) -> None:
         import wandb
-        wandb.log(metrics, step=step)
+        # Do not pass step as the W&B x-axis — it is non-monotonic across
+        # the train_dad / run_stepdad boundary.  Instead log it as a plain
+        # metric so it is still queryable, and let W&B auto-increment.
+        wandb.log({**metrics, "step_tracking": step})
 
     def finish(self) -> None:
         import wandb
