@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stepdad"
+version = "0.1.0"
+description = "Step-DAD: Semi-Amortized Policy-Based Bayesian Experimental Design"
+authors = [
+    { name = "Marcel Hedman", email = "marcel.hedman@stats.ox.ac.uk" },
+    { name = "Desi R. Ivanova", email = "desi.ivanova@stats.ox.ac.uk" },
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0",
+    "numpy",
+    "tqdm",
+    "wandb",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "black", "isort"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
