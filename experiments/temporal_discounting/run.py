@@ -43,7 +43,7 @@ def parse_args():
     p.add_argument("--n_finetune_steps", type=int, default=1000)
     p.add_argument("--n_posterior_samples", type=int, default=20_000)
     p.add_argument("--finetune_lr", type=float, default=5e-5)
-    p.add_argument("--n_eval_batches", type=int, default=10)
+    p.add_argument("--n_eval_batches", type=int, default=64)
     # p.add_argument("--eval_L", type=int, default=1023)
     p.add_argument("--eval_batch_size", type=int, default=512)
     p.add_argument("--n_thetas", type=int, default=16, help="Number of true thetas for Step-DAD evaluation")
