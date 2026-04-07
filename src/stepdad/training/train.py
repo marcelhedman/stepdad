@@ -189,7 +189,7 @@ def run_stepdad(
             "eig_from_tau":    {"finetuned_lb/ub", "notuning_lb/ub"}
             "eig_upto_tau_lb/ub"
             "total_eig_stepdad_lb/ub"
-            "total_eig_dad_lb/ub"
+            "total_eig_no_finetune_lb/ub"
     """
     if T is None:
         T = model.T
@@ -359,20 +359,20 @@ def run_stepdad(
 
     total_stepdad_lb = upto_lb + eig_ft_lb
     total_stepdad_ub = upto_ub + eig_ft_ub
-    total_dad_lb = upto_lb + eig_nt_lb
-    total_dad_ub = upto_ub + eig_nt_ub
+    total_no_finetune_lb = upto_lb + eig_nt_lb
+    total_no_finetune_ub = upto_ub + eig_nt_ub
 
     _log(logger, T, f"EIG(0→τ)  lb={upto_lb:.4f}  ub={upto_ub:.4f}")
-    _log(logger, T, f"Total EIG  StepDAD lb={total_stepdad_lb:.4f}  ub={total_stepdad_ub:.4f}")
-    _log(logger, T, f"Total EIG  DAD     lb={total_dad_lb:.4f}  ub={total_dad_ub:.4f}")
+    _log(logger, T, f"Total EIG  StepDAD    lb={total_stepdad_lb:.4f}  ub={total_stepdad_ub:.4f}")
+    _log(logger, T, f"Total EIG  no-finetune lb={total_no_finetune_lb:.4f}  ub={total_no_finetune_ub:.4f}")
     if logger:
         logger.log({
             "eig_upto_tau_lb": upto_lb,
             "eig_upto_tau_ub": upto_ub,
             "total_eig_stepdad_lb": total_stepdad_lb,
             "total_eig_stepdad_ub": total_stepdad_ub,
-            "total_eig_dad_lb": total_dad_lb,
-            "total_eig_dad_ub": total_dad_ub,
+            "total_eig_no_finetune_lb": total_no_finetune_lb,
+            "total_eig_no_finetune_ub": total_no_finetune_ub,
         }, step=T)
 
     eval_metrics = {
@@ -386,8 +386,8 @@ def run_stepdad(
         "eig_upto_tau_ub": upto_ub,
         "total_eig_stepdad_lb": total_stepdad_lb,
         "total_eig_stepdad_ub": total_stepdad_ub,
-        "total_eig_dad_lb": total_dad_lb,
-        "total_eig_dad_ub": total_dad_ub,
+        "total_eig_no_finetune_lb": total_no_finetune_lb,
+        "total_eig_no_finetune_ub": total_no_finetune_ub,
     }
 
     return designs, outcomes, eval_metrics
