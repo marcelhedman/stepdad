@@ -341,15 +341,28 @@ def run_stepdad(
     upto_model = copy.deepcopy(model)
     upto_model.T = tau
 
+    # Matched-DAD: pre-trained policy on theta_true for all T steps.
+    # Each rollout is independent (stochastic outcomes) but shares theta_true,
+    # giving a direct like-for-like comparison with StepDAD on this instance.
+    matched_dad_model = copy.deepcopy(model)
+    theta_matched = theta_true.expand(eval_batch_size, -1)
+
     upto_lb_vals, upto_ub_vals = [], []
+    matched_dad_lb_vals, matched_dad_ub_vals = [], []
     with torch.no_grad():
         for _ in range(n_eval_batches):
-            theta_u, d_u, o_u = upto_model(eval_batch_size)
-            upto_lb_vals.append(estimate_eig(upto_model, theta_u, d_u, o_u, L=eval_L, lower_bound=True))
-            upto_ub_vals.append(estimate_eig(upto_model, theta_u, d_u, o_u, L=eval_L, lower_bound=False))
+            theta_upto, designs_upto, outcomes_upto = upto_model(eval_batch_size)
+            upto_lb_vals.append(estimate_eig(upto_model, theta_upto, designs_upto, outcomes_upto, L=eval_L, lower_bound=True))
+            upto_ub_vals.append(estimate_eig(upto_model, theta_upto, designs_upto, outcomes_upto, L=eval_L, lower_bound=False))
+
+            designs_matched, outcomes_matched = matched_dad_model.run_policy(theta_matched)
+            matched_dad_lb_vals.append(estimate_eig(matched_dad_model, theta_matched, designs_matched, outcomes_matched, L=eval_L, lower_bound=True))
+            matched_dad_ub_vals.append(estimate_eig(matched_dad_model, theta_matched, designs_matched, outcomes_matched, L=eval_L, lower_bound=False))
 
     upto_lb = float(torch.tensor(upto_lb_vals).mean())
     upto_ub = float(torch.tensor(upto_ub_vals).mean())
+    matched_dad_lb = float(torch.tensor(matched_dad_lb_vals).mean())
+    matched_dad_ub = float(torch.tensor(matched_dad_ub_vals).mean())
 
     # Sum per-segment EIG estimates — each segment tiles [τ_i, τ_{i+1}) without overlap
     eig_ft_lb = float(sum(_ft_lb))
@@ -363,8 +376,9 @@ def run_stepdad(
     total_no_finetune_ub = upto_ub + eig_nt_ub
 
     _log(logger, T, f"EIG(0→τ)  lb={upto_lb:.4f}  ub={upto_ub:.4f}")
-    _log(logger, T, f"Total EIG  StepDAD    lb={total_stepdad_lb:.4f}  ub={total_stepdad_ub:.4f}")
+    _log(logger, T, f"Total EIG  StepDAD     lb={total_stepdad_lb:.4f}  ub={total_stepdad_ub:.4f}")
     _log(logger, T, f"Total EIG  no-finetune lb={total_no_finetune_lb:.4f}  ub={total_no_finetune_ub:.4f}")
+    _log(logger, T, f"Total EIG  matched-DAD lb={matched_dad_lb:.4f}  ub={matched_dad_ub:.4f}")
     if logger:
         logger.log({
             "eig_upto_tau_lb": upto_lb,
@@ -373,6 +387,8 @@ def run_stepdad(
             "total_eig_stepdad_ub": total_stepdad_ub,
             "total_eig_no_finetune_lb": total_no_finetune_lb,
             "total_eig_no_finetune_ub": total_no_finetune_ub,
+            "matched_dad_lb": matched_dad_lb,
+            "matched_dad_ub": matched_dad_ub,
         }, step=T)
 
     eval_metrics = {
@@ -388,6 +404,8 @@ def run_stepdad(
         "total_eig_stepdad_ub": total_stepdad_ub,
         "total_eig_no_finetune_lb": total_no_finetune_lb,
         "total_eig_no_finetune_ub": total_no_finetune_ub,
+        "matched_dad_lb": matched_dad_lb,
+        "matched_dad_ub": matched_dad_ub,
     }
 
     return designs, outcomes, eval_metrics

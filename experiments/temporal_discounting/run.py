@@ -136,7 +136,7 @@ def main():
                 )
                 all_metrics.append(metrics)
 
-            keys = ["total_eig_stepdad_lb", "total_eig_stepdad_ub", "total_eig_no_finetune_lb", "total_eig_no_finetune_ub"]
+            keys = ["total_eig_stepdad_lb", "total_eig_stepdad_ub", "total_eig_no_finetune_lb", "total_eig_no_finetune_ub", "matched_dad_lb", "matched_dad_ub"]
             means = {k: float(np.mean([m[k] for m in all_metrics])) for k in keys}
             stes  = {k: float(np.std([m[k] for m in all_metrics]) / np.sqrt(args.n_thetas)) for k in keys}
 
@@ -145,6 +145,8 @@ def main():
                   f"  ub={means['total_eig_stepdad_ub']:.4f} ± {stes['total_eig_stepdad_ub']:.4f}")
             print(f"Total EIG no-finetune lb={means['total_eig_no_finetune_lb']:.4f} ± {stes['total_eig_no_finetune_lb']:.4f}"
                   f"  ub={means['total_eig_no_finetune_ub']:.4f} ± {stes['total_eig_no_finetune_ub']:.4f}")
+            print(f"Total EIG matched-DAD lb={means['matched_dad_lb']:.4f} ± {stes['matched_dad_lb']:.4f}"
+                  f"  ub={means['matched_dad_ub']:.4f} ± {stes['matched_dad_ub']:.4f}")
             if logger:
                 logger.log({**{f"mean_{k}": v for k, v in means.items()},
                             **{f"ste_{k}": v for k, v in stes.items()}}, step=args.T)
