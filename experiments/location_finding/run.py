@@ -143,6 +143,7 @@ def main():
                     n_posterior_samples=args.n_posterior_samples,
                     finetune_lr=args.finetune_lr,
                     finetune_L=args.L,
+                    finetune_batch_size=args.batch_size,
                     n_eval_batches=args.n_eval_batches,
                     eval_L=args.final_L,
                     eval_batch_size=args.eval_batch_size,
