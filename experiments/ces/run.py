@@ -35,7 +35,7 @@ def parse_args():
     # Training
     p.add_argument("--n_steps", type=int, default=50_000)
     p.add_argument("--batch_size", type=int, default=100)
-    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--L", type=int, default=1024)
     p.add_argument("--final_L", type=int, default=100000)
     # Step-DAD
