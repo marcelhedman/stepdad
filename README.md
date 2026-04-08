@@ -12,7 +12,7 @@
 ## Overview
 
 Step-DAD is a **semi-amortized, policy-based** approach to Bayesian Experimental Design (BED).
-Like fully amortized methods (e.g. [DAD](https://arxiv.org/abs/2103.08564)), Step-DAD trains a design
+Like fully amortized methods (e.g. [DAD](https://arxiv.org/abs/2103.02438)), Step-DAD trains a design
 policy offline before the experiment.  Unlike them, Step-DAD **periodically refines the policy
 at test time** using data gathered so far: an *infer-refine* procedure that improves both
 performance and robustness.
