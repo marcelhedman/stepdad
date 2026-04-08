@@ -88,6 +88,7 @@ def train_dad(
 
         loss = spce_loss(theta, designs, outcomes)
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.design_net.parameters(), 1.0)
         optimiser.step()
 
         # Log loss at every step

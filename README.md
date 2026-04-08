@@ -17,9 +17,6 @@ policy offline before the experiment.  Unlike them, Step-DAD **periodically refi
 at test time** using data gathered so far: an *infer-refine* procedure that improves both
 performance and robustness.
 
-<p align="center">
-  <img src="https://arxiv.org/html/2507.14057v1/extracted/6646186/figures/overview.png" width="700"/>
-</p>
 
 Empirically, Step-DAD consistently outperforms state-of-the-art BED methods while using
 substantially less computation than traditional adaptive BED.
